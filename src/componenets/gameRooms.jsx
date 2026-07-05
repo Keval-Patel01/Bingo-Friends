@@ -10,6 +10,7 @@ import {
 
 export default function GameRoom() {
   const { roomId } = useParams();
+  const cleanRoomId = roomId?.toUpperCase() || "";
   const navigate = useNavigate();
   const playerName = localStorage.getItem("bingoPlayerName") || "Guest";
 
@@ -43,9 +44,9 @@ export default function GameRoom() {
 
   /* ---------- SYNC & JOIN TRANSAC ---------- */
   useEffect(() => {
-    if (!roomId) return;
+    if (!cleanRoomId) return;
 
-    const roomRef = ref(db, `rooms/${roomId.toUpperCase()}`);
+    const roomRef = ref(db, `rooms/${cleanRoomId}`);
 
     const unsubscribe = onValue(roomRef, async (snapshot) => {
       setLoading(false);
@@ -111,7 +112,7 @@ export default function GameRoom() {
 
   /* ---------- WIN CHECK & SYNC ---------- */
   useEffect(() => {
-    if (!roomData || !card.length || status !== "PLAYING") return;
+    if (!roomData || !card.length || status === "LOBBY") return;
 
     // Calculate completed lines locally based on synced card
     const linesCompleted = countCompletedLines(card, gridSize);
@@ -120,14 +121,16 @@ export default function GameRoom() {
     const hasWon = checkForWin(card, gridSize);
 
     if (hasWon && !winners.includes(playerName)) {
-      runTransaction(ref(db, `rooms/${roomId}`), (room) => {
+      runTransaction(ref(db, `rooms/${cleanRoomId}`), (room) => {
         if (!room) return room;
         room.winners ??= [];
         if (!room.winners.includes(playerName)) {
           room.winners.push(playerName);
         }
         // First player to reach BINGO wins and ends the active game status
-        room.status = "FINISHED";
+        if (room.status === "PLAYING") {
+          room.status = "FINISHED";
+        }
         return room;
       });
     }
@@ -139,7 +142,7 @@ export default function GameRoom() {
     if (status !== "PLAYING") return;
     if (selectedNumbers.includes(item.number)) return;
 
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = ref(db, `rooms/${cleanRoomId}`);
     await runTransaction(roomRef, (room) => {
       if (!room) return room;
       room.selectedNumbers ??= [];
@@ -170,7 +173,7 @@ export default function GameRoom() {
       return alert("You need at least 2 players in the lobby to start!");
     }
 
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = ref(db, `rooms/${cleanRoomId}`);
     await runTransaction(roomRef, (room) => {
       if (!room) return room;
       room.status = "PLAYING";
@@ -179,7 +182,7 @@ export default function GameRoom() {
   };
 
   const playAgain = async () => {
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = ref(db, `rooms/${cleanRoomId}`);
     await runTransaction(roomRef, (room) => {
       if (!room) return room;
       room.status = "LOBBY";
@@ -200,9 +203,13 @@ export default function GameRoom() {
   };
 
   const copyCode = () => {
-    navigator.clipboard.writeText(roomId.toUpperCase());
+    navigator.clipboard.writeText(cleanRoomId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const leaveRoom = () => {
+    navigate("/");
   };
 
   /* ---------- SUB-RENDER VIEWS ---------- */
@@ -259,7 +266,7 @@ export default function GameRoom() {
                 className="bg-slate-900 border border-purple-500/30 px-4 py-1.5 rounded-xl cursor-pointer hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(34,211,238,0.2)] active:scale-95 transition-all flex items-center gap-2"
               >
                 <span className="font-orbitron font-extrabold text-cyan-400 tracking-wider text-xl">
-                  {roomId.toUpperCase()}
+                  {cleanRoomId}
                 </span>
                 <span className="text-[10px] bg-slate-800 text-slate-400 font-semibold px-2 py-0.5 rounded font-inter">
                   {copied ? "COPIED!" : "COPY"}
@@ -400,7 +407,7 @@ export default function GameRoom() {
                 NEON SHOWDOWN
               </h1>
               <span className="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded font-orbitron tracking-widest uppercase">
-                ROOM: {roomId.toUpperCase()}
+                ROOM: {cleanRoomId}
               </span>
             </div>
 
@@ -627,6 +634,22 @@ export default function GameRoom() {
   // --- 3. GAME OVER ARENA VIEW ---
   if (status === "FINISHED") {
     const podiumRanks = ["🥇 GOLD", "🥈 SILVER", "🥉 BRONZE"];
+    
+    // Generate complete scoreboard for all players in the room
+    const playersMap = roomData?.players || {};
+    const rankedPlayers = Object.keys(playersMap)
+      .map((name) => {
+        const pCard = playersMap[name]?.card || [];
+        const lines = countCompletedLines(pCard, gridSize);
+        const isWinner = winners.includes(name);
+        return { name, lines, isWinner };
+      })
+      .sort((a, b) => {
+        if (a.isWinner && !b.isWinner) return -1;
+        if (!a.isWinner && b.isWinner) return 1;
+        return b.lines - a.lines;
+      });
+
     return (
       <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black text-white flex flex-col items-center justify-center p-4">
         
@@ -638,23 +661,45 @@ export default function GameRoom() {
           <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 tracking-widest font-orbitron mb-2 filter drop-shadow-[0_2px_15px_rgba(245,158,11,0.4)]">
             GAME OVER
           </h1>
-          <p className="text-slate-400 uppercase tracking-widest text-xs font-semibold mb-8 font-orbitron">
+          <p className="text-slate-400 uppercase tracking-widest text-xs font-semibold mb-6 font-orbitron">
             THE RESULTS ARE IN
           </p>
+
+          {winners.includes(playerName) ? (
+            <div className="mb-8 p-6 bg-emerald-950/30 border border-emerald-500/30 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.15)] max-w-sm mx-auto">
+              <span className="text-4xl block mb-2 animate-bounce">🏆</span>
+              <h2 className="text-xl font-black text-emerald-400 font-orbitron tracking-widest uppercase">
+                VICTORY!
+              </h2>
+              <p className="text-xs text-emerald-300 font-inter mt-1.5">
+                Congratulations, you completed the grid and claimed BINGO!
+              </p>
+            </div>
+          ) : (
+            <div className="mb-8 p-6 bg-red-950/20 border border-red-500/20 rounded-2xl shadow-[inset_0_0_15px_rgba(239,68,68,0.05)] max-w-sm mx-auto">
+              <span className="text-4xl block mb-2">💀</span>
+              <h2 className="text-xl font-black text-red-500 font-orbitron tracking-widest uppercase">
+                DEFEAT
+              </h2>
+              <p className="text-xs text-slate-400 font-inter mt-1.5">
+                An opponent claimed BINGO first. Better luck next showdown!
+              </p>
+            </div>
+          )}
 
           {/* Winner Podium List */}
           <div className="space-y-4 mb-8">
             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-orbitron text-left mb-3">
               Final Ranks:
             </h2>
-            {winners.map((winner, idx) => {
-              const isWinnerMe = winner === playerName;
+            {rankedPlayers.map((player, idx) => {
+              const isPlayerMe = player.name === playerName;
               const hasRankIcon = idx < 3;
               return (
                 <div
-                  key={winner}
+                  key={player.name}
                   className={`flex items-center justify-between p-4 rounded-xl border ${
-                    isWinnerMe
+                    isPlayerMe
                       ? "bg-purple-950/20 border-purple-500/30 shadow-[inset_0_0_10px_rgba(167,139,250,0.1)]"
                       : "bg-slate-900/60 border-slate-800"
                   }`}
@@ -663,13 +708,19 @@ export default function GameRoom() {
                     <span className="font-orbitron font-extrabold text-sm text-yellow-400">
                       {hasRankIcon ? podiumRanks[idx] : `#${idx + 1}`}
                     </span>
-                    <span className={`font-semibold font-inter text-sm ${isWinnerMe ? "text-purple-300 font-bold" : "text-white"}`}>
-                      {winner} {isWinnerMe && "(You)"}
+                    <span className={`font-semibold font-inter text-sm ${isPlayerMe ? "text-purple-300 font-bold" : "text-white"}`}>
+                      {player.name} {isPlayerMe && "(You)"}
                     </span>
                   </div>
-                  <span className="text-xs bg-slate-950 text-slate-400 font-orbitron font-bold border border-slate-800 px-3 py-1 rounded-lg">
-                    BINGO!
-                  </span>
+                  {player.isWinner ? (
+                    <span className="text-xs bg-emerald-500/10 text-emerald-400 font-orbitron font-bold border border-emerald-500/30 px-3 py-1 rounded-lg">
+                      BINGO!
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-slate-950 text-slate-400 font-orbitron font-bold border border-slate-800 px-3 py-1 rounded-lg">
+                      {player.lines} / {gridSize} Lines
+                    </span>
+                  )}
                 </div>
               );
             })}
