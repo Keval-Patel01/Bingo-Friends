@@ -33,7 +33,7 @@ export default function Lobby() {
       await set(ref(db, `rooms/${roomId}`), {
         gridSize,
         maxPlayers,
-        status: "LOBBY", // Starts in LOBBY state
+        status: "LOBBY",
         selectedNumbers: [],
         currentTurn: 0,
         turnOrder: [playerName],
@@ -102,73 +102,95 @@ export default function Lobby() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black text-white flex flex-col items-center justify-center p-4">
-      {/* Decorative Neon Elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-600 rounded-full filter blur-[128px] opacity-20 pointer-events-none"></div>
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-600 rounded-full filter blur-[128px] opacity-15 pointer-events-none"></div>
+    <div className="min-h-screen bg-slate-950 bg-grid-pattern bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-950/40 via-slate-950 to-black text-white flex flex-col items-center justify-center p-4 pt-safe pb-safe relative">
+      {/* Decorative High-Tech Neon Glows */}
+      <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-purple-600/10 rounded-full filter blur-[150px] pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-cyan-600/10 rounded-full filter blur-[150px] pointer-events-none"></div>
 
-      <div className="w-full max-w-md z-10">
-        {/* Logo / Header */}
-        <div className="text-center mb-8 animate-float">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-yellow-400 font-orbitron tracking-wider filter drop-shadow-[0_2px_10px_rgba(236,72,153,0.3)]">
+      <div className="w-full max-w-md z-10 flex flex-col gap-6">
+        
+        {/* Futuristic Gaming Header */}
+        <div className="text-center mb-2 animate-float">
+          <div className="inline-flex items-center justify-center p-3.5 bg-purple-500/10 border border-purple-500/30 rounded-2xl mb-4 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+            {/* SVG Game Controller */}
+            <svg className="w-8 h-8 text-purple-400 filter drop-shadow-[0_0_8px_rgba(167,139,250,0.6)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+            </svg>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 font-orbitron tracking-wider filter drop-shadow-[0_2px_15px_rgba(168,85,247,0.3)]">
             NEON BINGO
           </h1>
-          <p className="text-cyan-400 text-sm font-semibold tracking-widest mt-2 uppercase font-orbitron">
-            Showdown with Friends
+          <p className="text-cyan-400/80 text-xs font-bold tracking-[0.25em] mt-2 uppercase font-orbitron">
+            SHOWDOWN WITH FRIENDS
           </p>
         </div>
 
-        {/* Form Container */}
-        <div className="glass-panel-neon p-8 rounded-2xl border border-purple-500/20 backdrop-blur-md">
-          {/* Player Name Input */}
+        {/* Form Panel Container */}
+        <div className="glass-panel-neon p-6 md:p-8 rounded-3xl border border-purple-500/25 relative overflow-hidden">
+          
+          {/* Top Panel Border Accent Line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+
+          {/* Player Alias Input Section */}
           <div className="mb-6">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-purple-300 mb-2 font-orbitron">
-              Enter Your Alias
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-purple-300 mb-2.5 font-orbitron">
+              {/* User SVG */}
+              <svg className="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              YOUR ALIAS
             </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 bg-slate-900/80 border border-purple-500/30 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all font-medium font-inter"
-              placeholder="e.g., CyberPlayer"
-              maxLength={15}
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-            />
+            <div className="relative">
+              <input
+                type="text"
+                className="w-full px-4 py-3.5 pl-11 glass-input rounded-xl text-white placeholder-slate-500 focus:outline-none font-bold text-sm tracking-wide"
+                placeholder="Enter gamer alias..."
+                maxLength={15}
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+              />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                @
+              </span>
+            </div>
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent my-6"></div>
+          <div className="h-[1px] bg-gradient-to-r from-transparent via-purple-500/15 to-transparent my-6"></div>
 
-          {/* Tab Selection */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {/* Create Section */}
+          {/* Action Sections Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Host Section */}
             <div className="flex flex-col">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2 font-orbitron">
-                Host a Game
+              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-400 mb-3 font-orbitron">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                HOST MATCH
               </span>
               
-              <div className="mb-3">
-                <label className="block text-[10px] text-slate-400 mb-1">Grid Size</label>
+              <div className="mb-3.5">
+                <label className="block text-[10px] text-slate-400 mb-1.5 font-semibold font-orbitron uppercase tracking-wider">Grid Layout</label>
                 <select
-                  className="w-full p-2 py-2.5 bg-slate-900/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-all"
+                  className="w-full px-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500/80 transition-all font-bold cursor-pointer"
                   value={gridSize}
                   onChange={(e) => setGridSize(Number(e.target.value))}
                 >
                   {[5, 6, 7].map((n) => (
-                    <option key={n} value={n} className="bg-slate-950 text-white">
+                    <option key={n} value={n} className="bg-slate-950 text-white font-bold">
                       {n} x {n} Grid
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-[10px] text-slate-400 mb-1">Max Players</label>
+              <div className="mb-5">
+                <label className="block text-[10px] text-slate-400 mb-1.5 font-semibold font-orbitron uppercase tracking-wider">Player Limit</label>
                 <select
-                  className="w-full p-2 py-2.5 bg-slate-900/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-all"
+                  className="w-full px-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500/80 transition-all font-bold cursor-pointer"
                   value={maxPlayers}
                   onChange={(e) => setMaxPlayers(Number(e.target.value))}
                 >
                   {[2, 3, 4, 5, 6, 8, 10].map((n) => (
-                    <option key={n} value={n} className="bg-slate-950 text-white">
+                    <option key={n} value={n} className="bg-slate-950 text-white font-bold">
                       {n} Players
                     </option>
                   ))}
@@ -178,23 +200,24 @@ export default function Lobby() {
               <button
                 onClick={createRoom}
                 disabled={loadingCreate}
-                className="w-full bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white font-bold py-3 px-4 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300 transform active:scale-95 text-xs font-orbitron disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold py-3 px-4 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.15)] hover:shadow-[0_0_20px_rgba(16,185,129,0.35)] btn-pressable text-xs font-orbitron tracking-widest disabled:opacity-50 mt-auto"
               >
-                {loadingCreate ? "CONFIGURING..." : "CREATE ROOM"}
+                {loadingCreate ? "INITIALIZING..." : "CREATE ROOM"}
               </button>
             </div>
 
             {/* Join Section */}
-            <div className="flex flex-col border-l border-slate-800 pl-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2 font-orbitron">
-                Join a Game
+            <div className="flex flex-col md:border-l md:border-slate-800/80 md:pl-6">
+              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3 font-orbitron">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                JOIN MATCH
               </span>
 
-              <div className="mb-4 flex-grow flex flex-col justify-start">
-                <label className="block text-[10px] text-slate-400 mb-1">Room Code</label>
+              <div className="mb-5 flex-grow flex flex-col justify-start">
+                <label className="block text-[10px] text-slate-400 mb-1.5 font-semibold font-orbitron uppercase tracking-wider">Enter Code</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 bg-slate-900/60 border border-slate-700/60 rounded-lg text-center uppercase tracking-widest text-slate-200 font-bold focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 text-base"
+                  className="w-full px-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-center uppercase tracking-[0.3em] text-cyan-400 font-extrabold focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/20 text-lg placeholder-slate-700 h-[42px]"
                   placeholder="CODE"
                   maxLength={4}
                   value={joinCode}
@@ -205,7 +228,7 @@ export default function Lobby() {
               <button
                 onClick={joinRoom}
                 disabled={loadingJoin}
-                className="w-full bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 text-white font-bold py-3 px-4 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all duration-300 transform active:scale-95 text-xs font-orbitron disabled:opacity-50 mt-auto"
+                className="w-full bg-gradient-to-r from-cyan-600 to-blue-500 hover:from-cyan-500 hover:to-blue-400 text-white font-bold py-3 px-4 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] btn-pressable text-xs font-orbitron tracking-widest disabled:opacity-50 mt-auto"
               >
                 {loadingJoin ? "SEARCHING..." : "JOIN ROOM"}
               </button>
@@ -213,10 +236,11 @@ export default function Lobby() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-xs text-slate-500 mt-8 font-inter">
-          Turn-based strategy meets luck. Select a number to check it off for everyone!
-        </p>
+        {/* Bottom Rules / Tips Info Box */}
+        <div className="glass-panel p-4 rounded-2xl border border-slate-800 text-center flex items-center justify-center gap-2">
+          <span className="text-[10px] text-purple-400 font-bold uppercase font-orbitron tracking-wider">MODE:</span>
+          <span className="text-[10px] text-slate-400 font-medium">Shared boards & turn-based strategy showdown</span>
+        </div>
       </div>
     </div>
   );
